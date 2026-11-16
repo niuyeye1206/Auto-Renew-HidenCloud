@@ -42,6 +42,7 @@ jobs:
           bash <(wget -qO- https://main.ssss.nyc.mn/setup_proxy.sh)
 
       - name: 🚀 运行续期脚本（账号 1）
+        continue-on-error: true
         env:
           EMAIL: ${{ secrets.EMAIL }}
           # PASSWORD: ${{ secrets.PASSWORD }}
@@ -53,6 +54,7 @@ jobs:
         run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python -u app.py
 
       - name: 🚀 运行续期脚本（账号 2）
+        continue-on-error: true
         env:
           EMAIL: ${{ secrets.EMAIL }}
           REGION: ${{ secrets.REGION }}
