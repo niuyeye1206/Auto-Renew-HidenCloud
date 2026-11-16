@@ -64,7 +64,7 @@ def get_current_ip(proxy_server=None):
         log(f"❌ 获取出口IP失败: {e}")
         return "获取失败"
 
-def send_telegram_notification(status, old_due, new_due, current_ip="未知"):
+def send_telegram_notification(status, old_due="未知", new_due="未知", current_ip="未知"):
     """发送 Telegram 通知"""
     if not TG_BOT_TOKEN or not TG_CHAT_ID:
         log("⚠️ Telegram 未配置，跳过通知")
