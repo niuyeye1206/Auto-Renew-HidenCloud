@@ -64,7 +64,7 @@ def get_current_ip(proxy_server=None):
         log(f"❌ 获取出口IP失败: {e}")
         return "获取失败"
 
-def send_telegram_notification(status, old_due="未知", new_due="未知", current_ip="未知"):
+def send_telegram_notification(status, old_due="未知", new_due="未知", current_ip="未知", server_id="未知"):
     """发送 Telegram 通知"""
     if not TG_BOT_TOKEN or not TG_CHAT_ID:
         log("⚠️ Telegram 未配置，跳过通知")
@@ -86,6 +86,7 @@ def send_telegram_notification(status, old_due="未知", new_due="未知", curre
         f"{REGION} HidenCloud 续期通知\n\n"
         f"{status}\n"
         f"👤 账号: {masked_email}\n"
+        f"🖥️ 服务器 ID: {server_id}\n"
         f"📅 续期前到期：{old_due}\n"
         f"📅 续期后到期：{new_due}\n"
         f"🌐 续期使用IP: {current_ip}\n"
@@ -888,7 +889,7 @@ def main():
                 status = "✅ 续期成功"
 
             # 发送 Telegram 通知
-            send_telegram_notification(status, old_due, new_due, current_ip)
+            send_telegram_notification(status, old_due, new_due, current_ip, server_id)
 
             if renew_result == "NOT_TIME":
                 sys.exit(0)
