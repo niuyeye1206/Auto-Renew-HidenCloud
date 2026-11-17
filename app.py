@@ -64,7 +64,7 @@ def get_current_ip(proxy_server=None):
         log(f"❌ 获取出口IP失败: {e}")
         return "获取失败"
 
-def send_telegram_notification(status, old_due="未知", new_due="未知", current_ip="未知", server_id="未知"):
+def send_telegram_notification(status, old_due="未知", new_due="未知", current_ip="未知", server_id="未知", region_flag=None):
     """发送 Telegram 通知"""
     if not TG_BOT_TOKEN or not TG_CHAT_ID:
         log("⚠️ Telegram 未配置，跳过通知")
@@ -83,7 +83,7 @@ def send_telegram_notification(status, old_due="未知", new_due="未知", curre
         masked_email = EMAIL[:2] + '****'
 
     text = (
-        f"{REGION} HidenCloud 续期通知\n\n"
+        f"{region_flag or REGION} HidenCloud 续期通知\n\n"
         f"{status}\n"
         f"👤 账号: {masked_email}\n"
         f"🖥️ 服务器 ID: {server_id}\n"
@@ -706,6 +706,37 @@ def get_due_date(page):
         log(f"❌ 获取Due Date失败: {e}")
     return "未知"
 
+def get_region(page):
+    """从服务管理页面正文里自动识别服务器所在地区，返回对应国旗 emoji；识别不到返回 REGION 环境变量的兜底值"""
+    region_map = [
+        ("Mexico", "🇲🇽"),
+        ("United States", "🇺🇸"),
+        ("USA", "🇺🇸"),
+        ("Germany", "🇩🇪"),
+        ("France", "🇫🇷"),
+        ("Finland", "🇫🇮"),
+        ("United Kingdom", "🇬🇧"),
+        ("UK", "🇬🇧"),
+        ("Canada", "🇨🇦"),
+        ("Netherlands", "🇳🇱"),
+        ("Poland", "🇵🇱"),
+        ("Singapore", "🇸🇬"),
+        ("Japan", "🇯🇵"),
+        ("India", "🇮🇳"),
+        ("Australia", "🇦🇺"),
+        ("Brazil", "🇧🇷"),
+    ]
+    try:
+        body_text = page.locator("body").inner_text()
+        for name, flag in region_map:
+            if re.search(rf"\b{name}\b", body_text, re.IGNORECASE):
+                log(f"🌍 自动识别到地区: {name} {flag}")
+                return flag
+    except Exception as e:
+        log(f"❌ 获取地区失败: {e}")
+    log(f"⚠️ 未识别到地区，用 REGION 兜底值: {REGION}")
+    return REGION
+
 def renew_service(page):
 
     try:
@@ -873,6 +904,9 @@ def main():
             old_due = get_due_date(page)
             log(f"📆 续费前到期时间：{old_due}")
 
+            # 自动识别服务器所在地区
+            region_flag = get_region(page)
+
             # 执行续费
             renew_result = renew_service(page)
 
@@ -889,7 +923,7 @@ def main():
                 status = "✅ 续期成功"
 
             # 发送 Telegram 通知
-            send_telegram_notification(status, old_due, new_due, current_ip, server_id)
+            send_telegram_notification(status, old_due, new_due, current_ip, server_id, region_flag)
 
             if renew_result == "NOT_TIME":
                 sys.exit(0)
